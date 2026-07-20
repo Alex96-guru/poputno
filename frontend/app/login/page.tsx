@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import AuthShell, {
   AuthDivider,
+  AuthError,
   AuthField,
   SocialButtons,
 } from "@/components/auth/AuthShell";
@@ -13,13 +15,25 @@ import AuthShell, {
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (busy) return;
     const data = new FormData(e.currentTarget);
-    const email = String(data.get("email") ?? "").trim() || "traveler@poputno.ru";
-    login({ name: "Путешественник", email });
-    router.push("/");
+    setError(null);
+    setBusy(true);
+    try {
+      await login({
+        email: String(data.get("email") ?? "").trim(),
+        password: String(data.get("password") ?? ""),
+      });
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Что-то пошло не так");
+      setBusy(false);
+    }
   };
 
   return (
@@ -78,11 +92,14 @@ export default function LoginPage() {
           </a>
         </div>
 
+        <AuthError message={error} />
+
         <button
           type="submit"
-          className="rounded-btn bg-accent py-4 text-[16px] font-bold text-white shadow-[0_10px_24px_rgba(192,86,60,0.25)] transition hover:bg-accent-ink"
+          disabled={busy}
+          className="rounded-btn bg-accent py-4 text-[16px] font-bold text-white shadow-[0_10px_24px_rgba(192,86,60,0.25)] transition hover:bg-accent-ink disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Войти
+          {busy ? "Входим…" : "Войти"}
         </button>
 
         <AuthDivider />
