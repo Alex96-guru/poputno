@@ -11,7 +11,8 @@ def _unsplash(photo_id: str) -> str:
 PERSONS: list[Person] = [
     Person(
         id="1",
-        name="Мария, 28",
+        name="Мария",
+        age=28,
         companyType="Только девушки",
         location="Грузия · Тбилиси",
         dates="12–20 июля",
@@ -21,7 +22,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="2",
-        name="Артём, 31",
+        name="Артём",
+        age=31,
         companyType="Смешанная",
         location="Индонезия · Бали",
         dates="5–19 авг",
@@ -32,6 +34,7 @@ PERSONS: list[Person] = [
     Person(
         id="3",
         name="Аня и Лёша",
+        age=None,
         companyType="Пара",
         location="Россия · Алтай",
         dates="20–28 июля",
@@ -41,7 +44,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="4",
-        name="Дмитрий, 26",
+        name="Дмитрий",
+        age=26,
         companyType="Друзья",
         location="Турция · Каппадокия",
         dates="1–8 сент",
@@ -51,7 +55,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="5",
-        name="София, 24",
+        name="София",
+        age=24,
         companyType="Смешанная",
         location="Португалия · Лиссабон",
         dates="10–24 авг",
@@ -61,7 +66,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="6",
-        name="Игорь, 35",
+        name="Игорь",
+        age=35,
         companyType="Друзья",
         location="Россия · Роадтрип",
         dates="15–30 июля",
@@ -71,7 +77,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="7",
-        name="Карина, 29",
+        name="Карина",
+        age=29,
         companyType="Только девушки",
         location="Грузия · Сванетия",
         dates="3–12 авг",
@@ -81,7 +88,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="8",
-        name="Тимур, 30",
+        name="Тимур",
+        age=30,
         companyType="Одиночное путешествие",
         location="Индонезия · Убуд",
         dates="1–20 сент",
@@ -91,7 +99,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="9",
-        name="Алина, 26",
+        name="Алина",
+        age=26,
         companyType="Только девушки",
         location="Россия · Камчатка",
         dates="18–28 июля",
@@ -101,7 +110,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="10",
-        name="Артём, 30",
+        name="Артём",
+        age=30,
         companyType="Только парни",
         location="Вьетнам · Дананг",
         dates="3–15 авг",
@@ -111,7 +121,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="11",
-        name="Ника, 27",
+        name="Ника",
+        age=27,
         companyType="Смешанная",
         location="Марокко · Марракеш",
         dates="10–20 сен",
@@ -121,7 +132,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="12",
-        name="Егор, 25",
+        name="Егор",
+        age=25,
         companyType="Группа",
         location="Армения · Ереван",
         dates="22 авг – 1 сен",
@@ -131,7 +143,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="13",
-        name="Анна, 27",
+        name="Анна",
+        age=27,
         companyType="Только девушки",
         location="Перу · Куско",
         dates="12–24 авг",
@@ -141,7 +154,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="14",
-        name="Дмитрий, 31",
+        name="Дмитрий",
+        age=31,
         companyType="Только парни",
         location="Исландия · Рейкьявик",
         dates="3–14 сен",
@@ -152,6 +166,7 @@ PERSONS: list[Person] = [
     Person(
         id="15",
         name="Марина и Олег",
+        age=None,
         companyType="Пара",
         location="Таиланд · Пхукет",
         dates="20 июл – 5 авг",
@@ -161,7 +176,8 @@ PERSONS: list[Person] = [
     ),
     Person(
         id="16",
-        name="Катя, 24",
+        name="Катя",
+        age=24,
         companyType="Друзья",
         location="Черногория · Котор",
         dates="8–18 авг",

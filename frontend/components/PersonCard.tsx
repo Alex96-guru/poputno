@@ -8,12 +8,15 @@ interface Props {
   href?: string | null;
   /** Override the rating text (e.g. "нов." for a new listing preview). */
   ratingLabel?: string;
+  /** Drop the card's own frame so it can nest inside another card. */
+  bare?: boolean;
 }
 
-export default function PersonCard({ person, href, ratingLabel }: Props) {
+export default function PersonCard({ person, href, ratingLabel, bare }: Props) {
   const target = href === undefined ? `/listing/${person.id}` : href;
-  const className =
-    "group flex h-full flex-col overflow-hidden rounded-card border border-border bg-white shadow-[0_12px_32px_rgba(42,37,33,0.10),0_2px_6px_rgba(42,37,33,0.05)]";
+  const className = bare
+    ? "group flex h-full flex-col overflow-hidden bg-white"
+    : "group flex h-full flex-col overflow-hidden rounded-card border border-border bg-white shadow-[0_12px_32px_rgba(42,37,33,0.10),0_2px_6px_rgba(42,37,33,0.05)]";
   const linkClassName =
     className +
     " transition duration-200 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(42,37,33,0.16),0_2px_6px_rgba(42,37,33,0.06)]";
@@ -39,6 +42,9 @@ export default function PersonCard({ person, href, ratingLabel }: Props) {
         <header className="flex items-center justify-between gap-2">
           <h3 className="font-display text-[19px] font-bold text-ink">
             {person.name}
+            {person.age !== null && (
+              <span className="font-normal text-muted">, {person.age}</span>
+            )}
           </h3>
           <span className="flex items-center gap-1 text-[13px] font-semibold text-ink">
             <Star className="h-[15px] w-[15px] fill-gold text-gold" />

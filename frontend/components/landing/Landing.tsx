@@ -273,7 +273,8 @@ function StepCard({ step: { icon: Icon, number, title, lines } }: { step: Step }
 const PREVIEW: Person[] = [
   {
     id: "p1",
-    name: "Мария, 28",
+    name: "Мария",
+    age: 28,
     companyType: "Ищу компанию",
     location: "Грузия · Тбилиси",
     dates: "12–20 июля",
@@ -284,7 +285,8 @@ const PREVIEW: Person[] = [
   },
   {
     id: "p2",
-    name: "Алексей, 34",
+    name: "Алексей",
+    age: 34,
     companyType: "Гид по городу",
     location: "Турция · Стамбул",
     dates: "5–14 августа",
@@ -295,7 +297,8 @@ const PREVIEW: Person[] = [
   },
   {
     id: "p3",
-    name: "Аня и Пётр, 30",
+    name: "Аня и Пётр",
+    age: 30,
     companyType: "Пара · ищем компанию",
     location: "Армения · Ереван",
     dates: "1–10 сентября",
@@ -307,6 +310,7 @@ const PREVIEW: Person[] = [
   {
     id: "p4",
     name: "Друзья, 25–29",
+    age: null,
     companyType: "Компания друзей",
     location: "Грузия · Батуми",
     dates: "18–27 июля",

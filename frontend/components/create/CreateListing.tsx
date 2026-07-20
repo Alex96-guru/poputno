@@ -37,7 +37,8 @@ export default function CreateListing() {
 
   const preview: Person = {
     id: "preview",
-    name: "Алекс, 30",
+    name: "Алекс",
+    age: 30,
     companyType: format,
     location: direction || "Португалия · Лиссабон",
     dates,
