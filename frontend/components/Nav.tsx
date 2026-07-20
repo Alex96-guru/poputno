@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, Compass, LogOut, MessageCircle, Plus } from "lucide-react";
+import { Bell, Compass, LogOut, MessageCircle, User } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import Avatar from "./profile/Avatar";
 
 const NAV_LINKS = [
   { href: "/catalog", label: "Найти попутчиков", active: true },
+  { href: "/journal", label: "Журнал" },
   { href: "/destinations", label: "Направления" },
   { href: "/how", label: "Как это работает" },
   { href: "/reviews", label: "Отзывы" },
@@ -59,15 +61,6 @@ export default function Nav() {
             <Bell className="h-5 w-5" />
           </button>
 
-          <Link
-            href="/create"
-            aria-label="Создать объявление"
-            className="flex items-center gap-2 rounded-btn bg-accent px-3.5 py-[11px] text-[15px] font-semibold text-white transition hover:bg-accent-ink sm:px-5"
-          >
-            <Plus className="h-[19px] w-[19px]" strokeWidth={2.5} />
-            <span className="hidden sm:inline">Создать объявление</span>
-          </Link>
-
           <ProfileMenu />
         </div>
       </div>
@@ -95,12 +88,21 @@ function ProfileMenu() {
         type="button"
         aria-label="Профиль"
         onClick={() => setOpen((v) => !v)}
-        className="h-11 w-11 rounded-pill bg-cover bg-center bg-surface-2 ring-offset-2 transition hover:ring-2 hover:ring-accent"
-        style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1594751684241-bcef815d5a57?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=200)",
-        }}
-      />
+        className="h-11 w-11 overflow-hidden rounded-pill ring-offset-2 transition hover:ring-2 hover:ring-accent"
+      >
+        {user ? (
+          <Avatar
+            src={user.avatarUrl}
+            name={user.name}
+            className="h-full w-full"
+            textClassName="text-[15px]"
+          />
+        ) : (
+          <span className="grid h-full w-full place-items-center rounded-pill bg-surface-2 text-subtle">
+            <User className="h-5 w-5" />
+          </span>
+        )}
+      </button>
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+10px)] w-56 overflow-hidden rounded-card border border-border bg-white shadow-[0_16px_40px_rgba(42,37,33,0.14)]">
@@ -114,6 +116,14 @@ function ProfileMenu() {
               </span>
             </div>
           )}
+          <Link
+            href="/profile/me"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-ink transition hover:bg-surface-2"
+          >
+            <User className="h-[18px] w-[18px] text-muted" />
+            Мой профиль
+          </Link>
           <button
             type="button"
             onClick={() => {

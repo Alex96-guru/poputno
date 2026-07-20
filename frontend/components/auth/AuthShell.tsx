@@ -89,8 +89,11 @@ interface FieldProps {
   icon: LucideIcon;
   placeholder: string;
   name: string;
-  type?: "text" | "email";
+  type?: "text" | "email" | "date";
   password?: boolean;
+  minLength?: number;
+  /** Latest value a date input accepts, as YYYY-MM-DD. */
+  max?: string;
 }
 
 export function AuthField({
@@ -100,6 +103,8 @@ export function AuthField({
   name,
   type = "text",
   password = false,
+  minLength,
+  max,
 }: FieldProps) {
   const [visible, setVisible] = useState(false);
   return (
@@ -111,6 +116,9 @@ export function AuthField({
           name={name}
           type={password ? (visible ? "text" : "password") : type}
           placeholder={placeholder}
+          required
+          minLength={minLength}
+          max={max}
           className="w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-subtle"
         />
         {password && (
@@ -129,6 +137,18 @@ export function AuthField({
         )}
       </div>
     </label>
+  );
+}
+
+export function AuthError({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <p
+      role="alert"
+      className="rounded-btn border border-[#E9BEB6] bg-[#FCEEEB] px-4 py-3 text-[14px] font-medium text-[#C0392B]"
+    >
+      {message}
+    </p>
   );
 }
 

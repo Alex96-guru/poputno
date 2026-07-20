@@ -3,27 +3,51 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, Lock, Mail, User } from "lucide-react";
+import { Cake, Check, Lock, Mail, User } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { birthDateError, todayIso } from "@/lib/age";
 import AuthShell, {
   AuthDivider,
+  AuthError,
   AuthField,
   SocialButtons,
 } from "@/components/auth/AuthShell";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const [consent, setConsent] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!consent) return;
+    if (busy) return;
+    if (!consent) {
+      setError("Примите правила сервиса, чтобы продолжить.");
+      return;
+    }
     const data = new FormData(e.currentTarget);
-    const name = String(data.get("name") ?? "").trim() || "Путешественник";
-    const email = String(data.get("email") ?? "").trim() || "traveler@poputno.ru";
-    login({ name, email });
-    router.push("/");
+    const birthDate = String(data.get("birthDate") ?? "");
+    const birthProblem = birthDateError(birthDate);
+    if (birthProblem) {
+      setError(birthProblem);
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await register({
+        name: String(data.get("name") ?? "").trim(),
+        email: String(data.get("email") ?? "").trim(),
+        password: String(data.get("password") ?? ""),
+        birthDate,
+      });
+      router.push("/profile/me");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Что-то пошло не так");
+      setBusy(false);
+    }
   };
 
   return (
@@ -73,12 +97,23 @@ export default function RegisterPage() {
           placeholder="you@example.com"
         />
         <AuthField
+          label="Дата рождения"
+          name="birthDate"
+          icon={Cake}
+          type="date"
+          max={todayIso()}
+          placeholder="дд.мм.гггг"
+        />
+        <AuthField
           label="Пароль"
           name="password"
           icon={Lock}
-          placeholder="Придумайте пароль"
+          placeholder="Минимум 6 символов"
           password
+          minLength={6}
         />
+
+        <AuthError message={error} />
 
         <button
           type="button"
@@ -101,9 +136,10 @@ export default function RegisterPage() {
 
         <button
           type="submit"
-          className="rounded-btn bg-accent py-4 text-[16px] font-bold text-white shadow-[0_10px_24px_rgba(192,86,60,0.25)] transition hover:bg-accent-ink"
+          disabled={busy}
+          className="rounded-btn bg-accent py-4 text-[16px] font-bold text-white shadow-[0_10px_24px_rgba(192,86,60,0.25)] transition hover:bg-accent-ink disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Создать аккаунт
+          {busy ? "Создаём аккаунт…" : "Создать аккаунт"}
         </button>
 
         <AuthDivider />
