@@ -24,6 +24,7 @@ _COMPLETENESS_FIELDS = (
     ("bio", "Описание «о себе»", lambda r: bool(r["bio"])),
     ("email", "Почта подтверждена", lambda r: bool(r["email_verified"])),
     ("phone", "Добавить телефон", lambda r: bool(r["phone"])),
+    ("interests", "Чем займётесь в поездке", lambda r: bool(json.loads(r["interests"]))),
 )
 
 
@@ -85,6 +86,22 @@ def _age(row: sqlite3.Row) -> int | None:
     return age_on(date.fromisoformat(row["birth_date"]))
 
 
+def _profile_details(row: sqlite3.Row) -> dict[str, object]:
+    """The "Заполнение профиля" fields, shared by the private and public shapes."""
+    return dict(
+        languages=json.loads(row["languages"]),
+        smoking=row["smoking"],
+        # The column is NOT NULL, so 0 stands in for "not stated".
+        height=row["height"] or None,
+        marital_status=row["marital_status"],
+        children=row["children"],
+        pets=row["pets"],
+        university=row["university"],
+        profession=row["profession"],
+        music=row["music"],
+    )
+
+
 def to_user(row: sqlite3.Row) -> User:
     return User(
         id=row["id"],
@@ -99,6 +116,8 @@ def to_user(row: sqlite3.Row) -> User:
         age=_age(row),
         avatar_url=row["avatar_url"],
         interests=json.loads(row["interests"]),
+        **_profile_details(row),
+        gender=row["gender"],
         rating=row["rating"],
         reviews_count=row["reviews_count"],
         email_verified=bool(row["email_verified"]),
@@ -120,8 +139,10 @@ def to_public_user(row: sqlite3.Row) -> PublicUser:
         age=_age(row) if row["privacy_show_age"] else None,
         avatar_url=row["avatar_url"],
         interests=json.loads(row["interests"]),
+        **_profile_details(row),
         rating=row["rating"],
         reviews_count=row["reviews_count"],
+        created_at=row["created_at"],
     )
 
 
@@ -136,7 +157,7 @@ def get_by_email(email: str) -> sqlite3.Row | None:
 
 
 def create(
-    name: str, email: str, password: str, birth_date: date
+    name: str, email: str, password: str, birth_date: date, gender: str
 ) -> sqlite3.Row:
     """Insert a new user. Raises ValueError if the email is already taken."""
     with connect() as conn:
@@ -146,8 +167,9 @@ def create(
         conn.execute(
             """
             INSERT INTO users
-                (id, email, password_hash, name, username, birth_date, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (id, email, password_hash, name, username, birth_date, gender,
+                 created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -156,6 +178,7 @@ def create(
                 name,
                 _unique_username(conn, _slugify(name)),
                 birth_date.isoformat(),
+                gender,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
             ),
         )
@@ -170,13 +193,27 @@ _UPDATABLE = {
     "birth_date": "birth_date",
     "avatar_url": "avatar_url",
     "interests": "interests",
+    "languages": "languages",
+    "smoking": "smoking",
+    "height": "height",
+    "marital_status": "marital_status",
+    "children": "children",
+    "pets": "pets",
+    "university": "university",
+    "profession": "profession",
+    "music": "music",
+    "gender": "gender",
 }
+
+# Stored as JSON arrays rather than columns of their own.
+_JSON_FIELDS = ("interests", "languages")
 
 
 def update(user_id: str, changes: dict[str, object]) -> sqlite3.Row | None:
     fields = {k: v for k, v in changes.items() if k in _UPDATABLE and v is not None}
-    if "interests" in fields:
-        fields["interests"] = json.dumps(fields["interests"], ensure_ascii=False)
+    for key in _JSON_FIELDS:
+        if key in fields:
+            fields[key] = json.dumps(fields[key], ensure_ascii=False)
     if "birth_date" in fields:
         # sqlite3 has no date type, and its implicit adapters are deprecated.
         fields["birth_date"] = fields["birth_date"].isoformat()
@@ -228,4 +265,7 @@ def change_password(user_id: str, current: str, new: str) -> sqlite3.Row:
 
 def delete(user_id: str) -> None:
     with connect() as conn:
+        # sqlite does not enforce foreign keys by default, so the user's
+        # listings are cleared explicitly rather than left orphaned.
+        conn.execute("DELETE FROM listings WHERE author_id = ?", (user_id,))
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))

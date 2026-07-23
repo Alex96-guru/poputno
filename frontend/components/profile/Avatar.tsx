@@ -32,6 +32,8 @@ interface Props {
   className?: string;
   /** Font size of the initials; pair it with className. */
   textClassName?: string;
+  /** Corner rounding. Override to fill a rectangular slot, e.g. a card photo. */
+  radiusClassName?: string;
 }
 
 export default function Avatar({
@@ -39,12 +41,13 @@ export default function Avatar({
   name,
   className = "",
   textClassName = "text-[38px]",
+  radiusClassName = "rounded-pill",
 }: Props) {
   if (src) {
     return (
       <span
         aria-hidden
-        className={`block rounded-pill bg-surface-2 bg-cover bg-center ${className}`}
+        className={`block bg-surface-2 bg-cover bg-center ${radiusClassName} ${className}`}
         style={{ backgroundImage: `url(${src})` }}
       />
     );
@@ -54,7 +57,7 @@ export default function Avatar({
     <span
       role="img"
       aria-label={`${name} — фото не загружено`}
-      className={`grid place-items-center rounded-pill font-display font-bold text-white ${textClassName} ${className}`}
+      className={`grid place-items-center font-display font-bold text-white ${radiusClassName} ${textClassName} ${className}`}
       style={{ backgroundColor: tintOf(name) }}
     >
       {initialsOf(name)}

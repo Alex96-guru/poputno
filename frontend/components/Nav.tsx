@@ -2,19 +2,69 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, Compass, LogOut, MessageCircle, User } from "lucide-react";
+import { usePathname } from "next/navigation";
+import {
+  Bell,
+  ChevronDown,
+  Coffee,
+  Compass,
+  House,
+  LogOut,
+  MessageCircle,
+  Plane,
+  User,
+  type LucideIcon,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import Avatar from "./profile/Avatar";
 
-const NAV_LINKS = [
-  { href: "/catalog", label: "Найти попутчиков", active: true },
+interface SubLink {
+  href: string;
+  label: string;
+  hint: string;
+  icon: LucideIcon;
+  /** Colours for the round icon tile, matching the home page shelves. */
+  tile: string;
+}
+
+const CATALOG_SECTIONS: SubLink[] = [
+  {
+    href: "/catalog?category=Путешествия",
+    label: "Путешествия",
+    hint: "Попутчики в поездки",
+    icon: Plane,
+    tile: "bg-accent-soft text-accent-ink",
+  },
+  {
+    href: "/catalog?category=Встречи",
+    label: "Встречи",
+    hint: "Провести время в своём городе",
+    icon: Coffee,
+    tile: "bg-teal-soft text-teal",
+  },
+  {
+    href: "/catalog?category=В гости",
+    label: "В гости",
+    hint: "Местные принимают гостей",
+    icon: House,
+    tile: "bg-[#FBEFD8] text-[#B07B10]",
+  },
+];
+
+const NAV_LINKS: { href: string; label: string; sections?: SubLink[] }[] = [
+  { href: "/catalog", label: "Найти попутчиков", sections: CATALOG_SECTIONS },
   { href: "/journal", label: "Журнал" },
-  { href: "/destinations", label: "Направления" },
-  { href: "/how", label: "Как это работает" },
   { href: "/reviews", label: "Отзывы" },
 ];
 
+/** A section stays highlighted on its nested pages, e.g. /journal/some-article. */
+function isActive(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Nav() {
+  const pathname = usePathname() ?? "";
+
   return (
     <header className="sticky top-0 z-50 h-[78px] border-b border-border bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-full max-w-content items-center justify-between gap-4 px-5 sm:px-8 lg:px-20">
@@ -26,18 +76,14 @@ export default function Nav() {
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex xl:gap-[38px]">
-          {NAV_LINKS.map(({ href, label, active }) => (
-            <Link
+          {NAV_LINKS.map(({ href, label, sections }) => (
+            <NavItem
               key={href}
               href={href}
-              className={
-                active
-                  ? "text-[16px] font-semibold text-ink"
-                  : "text-[16px] font-medium text-muted transition hover:text-ink"
-              }
-            >
-              {label}
-            </Link>
+              label={label}
+              sections={sections}
+              active={isActive(pathname, href)}
+            />
           ))}
         </nav>
 
@@ -65,6 +111,104 @@ export default function Nav() {
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * A nav link that may reveal its sections.
+ *
+ * The panel opens on hover and on keyboard focus, and the wrapper keeps a
+ * padded gap underneath the link so the pointer can travel down to the panel
+ * without crossing a dead zone that would close it.
+ */
+function NavItem({
+  href,
+  label,
+  sections,
+  active,
+}: {
+  href: string;
+  label: string;
+  sections?: SubLink[];
+  active: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const linkClass = `flex items-center gap-1 text-[16px] transition-colors ${
+    active
+      ? "font-semibold text-ink hover:text-accent-ink"
+      : "font-medium text-muted hover:text-ink"
+  }`;
+
+  if (!sections) {
+    return (
+      <Link
+        href={href}
+        aria-current={active ? "page" : undefined}
+        className={linkClass}
+      >
+        {label}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
+      }}
+    >
+      <Link
+        href={href}
+        aria-current={active ? "page" : undefined}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={linkClass}
+      >
+        {label}
+        <ChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </Link>
+
+      {open && (
+        // pt-3 bridges the gap between the link and the panel.
+        <div className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3">
+          <div
+            role="menu"
+            className="w-[290px] overflow-hidden rounded-card border border-border bg-white p-2 shadow-[0_18px_44px_rgba(42,37,33,0.16)]"
+          >
+            {sections.map(({ href: to, label: title, hint, icon: Icon, tile }) => (
+              <Link
+                key={to}
+                href={to}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 rounded-btn p-2.5 transition-colors hover:bg-surface-2"
+              >
+                <span
+                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] ${tile}`}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="flex flex-col">
+                  <span className="text-[15px] font-semibold text-ink">
+                    {title}
+                  </span>
+                  <span className="text-[13px] text-muted">{hint}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,24 +1,21 @@
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
-import Listings from "@/components/Listings";
 import Nav from "@/components/Nav";
-import PopularPills from "@/components/PopularPills";
-import type { Person } from "@/lib/types";
+import TopListings from "@/components/home/TopListings";
+import type { City } from "@/lib/types";
 
 interface Props {
-  persons: Person[];
-  destinations: string[];
+  cities: City[];
 }
 
-export default function AuthorizedHome({ persons, destinations }: Props) {
+export default function AuthorizedHome({ cities }: Props) {
   return (
     <>
       <Nav />
       <main>
-        <Hero />
-        <PopularPills destinations={destinations} />
-        <Listings persons={persons} />
+        <Hero cities={cities} />
+        <TopListings />
         <HowItWorks />
       </main>
       <Footer />

@@ -20,6 +20,7 @@ interface AuthContextValue {
     email: string;
     password: string;
     birthDate: string;
+    gender: string;
   }) => Promise<void>;
   login: (input: { email: string; password: string }) => Promise<void>;
   updateProfile: (changes: ProfileUpdate) => Promise<void>;
@@ -87,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string;
       password: string;
       birthDate: string;
+      gender: string;
     }) => {
       apply(await api.register(input));
     },

@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
 import ListingDetail from "@/components/listing/ListingDetail";
 import Nav from "@/components/Nav";
-import { fetchPersons } from "@/lib/api";
+import { fetchListing, fetchUserListings } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
 
 export default async function ListingPage({
   params,
@@ -10,17 +12,18 @@ export default async function ListingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const persons = await fetchPersons();
-  const person = persons.find((p) => p.id === id);
+  const listing = await fetchListing(id);
 
-  if (!person) notFound();
+  if (!listing) notFound();
 
-  const others = persons.filter((p) => p.id !== id).slice(0, 3);
+  const others = (await fetchUserListings(listing.author.id))
+    .filter((l) => l.id !== listing.id)
+    .slice(0, 3);
 
   return (
     <>
       <Nav />
-      <ListingDetail person={person} others={others} />
+      <ListingDetail listing={listing} others={others} />
       <Footer />
     </>
   );

@@ -1,13 +1,10 @@
 import HomeGate from "@/components/HomeGate";
-import { fetchPersons, fetchPopularDestinations } from "@/lib/api";
+import { fetchCities } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [persons, destinations] = await Promise.all([
-    fetchPersons(),
-    fetchPopularDestinations(),
-  ]);
+  const cities = await fetchCities();
 
-  return <HomeGate persons={persons} destinations={destinations} />;
+  return <HomeGate cities={cities} />;
 }

@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import PersonCard from "@/components/PersonCard";
+import ListingCard from "@/components/listing/ListingCard";
 import { Stars, plural } from "@/components/profile/ProfileSidebar";
-import type { Person, User } from "@/lib/types";
+import type { Listing, User } from "@/lib/types";
 
 export interface Review {
   id: string;
@@ -17,7 +16,7 @@ export interface Review {
 interface Props {
   user: User;
   reviews: Review[];
-  saved: Person[];
+  saved: Listing[];
 }
 
 export default function ProfileReviews({ user, reviews, saved }: Props) {
@@ -73,34 +72,23 @@ export default function ProfileReviews({ user, reviews, saved }: Props) {
       </section>
 
       <section id="saved" className="flex flex-col gap-7 scroll-mt-24">
-        <header className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <h2 className="font-display text-[26px] text-ink">Сохранённые</h2>
-            <span className="text-[20px] text-subtle">{saved.length}</span>
-          </div>
-          <Link
-            href="/catalog"
-            className="text-[14px] font-semibold text-accent-ink transition hover:text-accent"
-          >
-            Смотреть все →
-          </Link>
+        <header className="flex items-center gap-2.5">
+          <h2 className="font-display text-[26px] text-ink">Сохранённые</h2>
+          <span className="text-[20px] text-subtle">{saved.length}</span>
         </header>
 
         {saved.length === 0 ? (
           <p className="rounded-card border border-border bg-white p-[22px] text-[15px] text-muted">
-            Здесь появятся объявления, которые вы отметите сердечком в{" "}
-            <Link
-              href="/catalog"
-              className="font-semibold text-accent-ink transition hover:text-accent"
-            >
-              каталоге
-            </Link>
-            .
+            Отмечайте объявления сердечком — они появятся здесь.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {saved.map((person) => (
-              <PersonCard key={person.id} person={person} />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {saved.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                href={`/listing/${listing.id}`}
+              />
             ))}
           </div>
         )}

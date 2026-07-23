@@ -181,12 +181,3 @@ export const MOCK_PERSONS: Person[] = [
     photoUrl: unsplash("photo-1613192762322-412d46d6c21c"),
   },
 ];
-
-export const POPULAR_DESTINATIONS = [
-  "Грузия",
-  "Бали",
-  "Алтай",
-  "Турция",
-  "Португалия",
-  "Роадтрип",
-];

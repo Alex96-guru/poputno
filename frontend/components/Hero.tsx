@@ -1,5 +1,6 @@
 import Reveal from "./Reveal";
 import SearchBar from "./SearchBar";
+import type { City } from "@/lib/types";
 
 const COLLAGE_A = [
   { url: "photo-1519699047748-de8e457a634e", height: 214 },
@@ -14,7 +15,7 @@ const COLLAGE_B = [
 const unsplash = (id: string) =>
   `https://images.unsplash.com/${id}?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600`;
 
-export default function Hero() {
+export default function Hero({ cities }: { cities: City[] }) {
   return (
     <section className="bg-surface-2 px-5 py-12 sm:px-8 lg:px-20 lg:py-16">
       <div className="mx-auto flex max-w-content flex-col gap-10 lg:flex-row lg:items-center lg:gap-16">
@@ -32,7 +33,7 @@ export default function Hero() {
             направлению, датам и духу приключений.
           </p>
 
-          <SearchBar />
+          <SearchBar cities={cities} />
         </Reveal>
 
         <Reveal delay={120}>

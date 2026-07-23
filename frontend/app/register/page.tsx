@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Cake, Check, Lock, Mail, User } from "lucide-react";
+import { Cake, Check, Lock, Mail, User, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { birthDateError, todayIso } from "@/lib/age";
 import AuthShell, {
@@ -13,16 +13,27 @@ import AuthShell, {
   SocialButtons,
 } from "@/components/auth/AuthShell";
 
+/** The value is stored as-is and reused as the listing's "Я". */
+const GENDERS = [
+  { value: "мужчина", label: "Мужчина" },
+  { value: "женщина", label: "Женщина" },
+];
+
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
   const [consent, setConsent] = useState(true);
+  const [gender, setGender] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (busy) return;
+    if (!gender) {
+      setError("Укажите, кто вы.");
+      return;
+    }
     if (!consent) {
       setError("Примите правила сервиса, чтобы продолжить.");
       return;
@@ -42,6 +53,7 @@ export default function RegisterPage() {
         email: String(data.get("email") ?? "").trim(),
         password: String(data.get("password") ?? ""),
         birthDate,
+        gender,
       });
       router.push("/profile/me");
     } catch (err) {
@@ -96,6 +108,32 @@ export default function RegisterPage() {
           type="email"
           placeholder="you@example.com"
         />
+        {/* Fills "Я" on every listing, so the create form need not ask again. */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold text-ink">Кто вы</span>
+          <div className="grid grid-cols-2 gap-2.5">
+            {GENDERS.map(({ value, label }) => {
+              const active = gender === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setGender(value)}
+                  className={`flex items-center justify-center gap-2 rounded-btn py-3.5 text-[15px] transition ${
+                    active
+                      ? "border-[1.5px] border-accent bg-accent-soft font-bold text-accent-ink"
+                      : "border border-border bg-white font-medium text-muted hover:border-accent"
+                  }`}
+                >
+                  <UserRound className="h-[18px] w-[18px]" />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <AuthField
           label="Дата рождения"
           name="birthDate"

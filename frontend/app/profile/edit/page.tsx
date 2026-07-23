@@ -2,12 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import CreateListing from "@/components/create/CreateListing";
-import Footer from "@/components/Footer";
-import Nav from "@/components/Nav";
+import EditProfile from "@/components/profile/EditProfile";
 import { useAuth } from "@/lib/auth";
 
-export default function CreatePage() {
+export default function EditProfilePage() {
   const { user, ready } = useAuth();
   const router = useRouter();
 
@@ -16,14 +14,8 @@ export default function CreatePage() {
   }, [ready, user, router]);
 
   if (!ready || !user) {
-    return <div className="min-h-screen bg-bg" />;
+    return <div className="min-h-screen bg-surface-2" />;
   }
 
-  return (
-    <>
-      <Nav />
-      <CreateListing user={user} />
-      <Footer />
-    </>
-  );
+  return <EditProfile user={user} />;
 }

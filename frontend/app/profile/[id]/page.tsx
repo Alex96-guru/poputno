@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import ProfilePage from "@/components/profile/ProfilePage";
-import { fetchPersons } from "@/lib/api";
+import { fetchPublicUser, fetchUserListings } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
 
 export default async function Profile({
   params,
@@ -10,17 +12,17 @@ export default async function Profile({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const persons = await fetchPersons();
-  const person = persons.find((p) => p.id === id);
+  const [user, listings] = await Promise.all([
+    fetchPublicUser(id),
+    fetchUserListings(id),
+  ]);
 
-  if (!person) notFound();
-
-  const listings = persons.filter((p) => p.id !== id).slice(0, 3);
+  if (!user) notFound();
 
   return (
     <>
       <Nav />
-      <ProfilePage person={person} listings={listings} />
+      <ProfilePage user={user} listings={listings} />
       <Footer />
     </>
   );

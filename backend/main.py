@@ -4,12 +4,17 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+import listings as listings_repo
 import users as users_repo
+from cities import CITIES
 from config import ALLOWED_ORIGINS
 from data import PERSONS, POPULAR_DESTINATIONS
 from db import init_db
 from schemas import (
     AuthResponse,
+    City,
+    Listing,
+    ListingCreate,
     LoginRequest,
     PasswordChange,
     Person,
@@ -26,6 +31,7 @@ from security import create_token, decode_token, verify_password
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    listings_repo.backfill_coordinates()
     yield
 
 
@@ -67,7 +73,11 @@ def current_user(
 def register(payload: RegisterRequest) -> AuthResponse:
     try:
         row = users_repo.create(
-            payload.name, str(payload.email), payload.password, payload.birth_date
+            payload.name,
+            str(payload.email),
+            payload.password,
+            payload.birth_date,
+            payload.gender,
         )
     except ValueError:
         raise HTTPException(
@@ -147,6 +157,94 @@ def get_user(user_id: str) -> PublicUser:
     return users_repo.to_public_user(row)
 
 
+# ------------------------------------------------------------------ listings
+
+
+@app.post(
+    "/api/listings",
+    response_model=Listing,
+    response_model_by_alias=True,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_listing(payload: ListingCreate, row=Depends(current_user)) -> Listing:
+    created = listings_repo.create(row["id"], payload.model_dump())
+    return listings_repo.to_listing(created)
+
+
+@app.get("/api/listings", response_model=list[Listing], response_model_by_alias=True)
+def list_listings() -> list[Listing]:
+    return [listings_repo.to_listing(r) for r in listings_repo.list_all()]
+
+
+@app.get(
+    "/api/users/me/listings",
+    response_model=list[Listing],
+    response_model_by_alias=True,
+)
+def list_my_listings(row=Depends(current_user)) -> list[Listing]:
+    return [
+        listings_repo.to_listing(r) for r in listings_repo.list_by_author(row["id"])
+    ]
+
+
+@app.get("/api/users/me/saved", response_model=list[Listing], response_model_by_alias=True)
+def list_saved(row=Depends(current_user)) -> list[Listing]:
+    return [listings_repo.to_listing(r) for r in listings_repo.list_saved(row["id"])]
+
+
+@app.get("/api/users/me/saved/ids", response_model=list[str])
+def list_saved_ids(row=Depends(current_user)) -> list[str]:
+    """Just the ids, so the client can paint the hearts without the full rows."""
+    return listings_repo.saved_ids(row["id"])
+
+
+@app.post("/api/users/me/saved/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
+def save_listing(listing_id: str, row=Depends(current_user)) -> Response:
+    try:
+        listings_repo.save(row["id"], listing_id)
+    except listings_repo.SaveError as err:
+        if err.code == "own":
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Нельзя сохранить своё объявление"
+            )
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Объявление не найдено")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.delete("/api/users/me/saved/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
+def unsave_listing(listing_id: str, row=Depends(current_user)) -> Response:
+    listings_repo.unsave(row["id"], listing_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# Declared after /api/users/me/listings so that "me" is not taken as a user id.
+@app.get(
+    "/api/users/{user_id}/listings",
+    response_model=list[Listing],
+    response_model_by_alias=True,
+)
+def list_user_listings(user_id: str) -> list[Listing]:
+    """Everything this traveller has posted, for their public profile."""
+    return [listings_repo.to_listing(r) for r in listings_repo.list_by_author(user_id)]
+
+
+@app.get(
+    "/api/listings/{listing_id}", response_model=Listing, response_model_by_alias=True
+)
+def get_listing(listing_id: str) -> Listing:
+    found = listings_repo.get(listing_id)
+    if found is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Объявление не найдено")
+    return listings_repo.to_listing(found)
+
+
+@app.delete("/api/listings/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_listing(listing_id: str, row=Depends(current_user)) -> Response:
+    if not listings_repo.delete(listing_id, row["id"]):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Объявление не найдено")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 # ------------------------------------------------------------------ catalog
 
 
@@ -157,6 +255,12 @@ def list_persons(
     if company_type is None:
         return PERSONS
     return [p for p in PERSONS if p.company_type == company_type]
+
+
+@app.get("/api/cities", response_model=list[City])
+def list_cities() -> list[City]:
+    """Cities the radius filter can measure from."""
+    return [City(name=name, lat=lat, lon=lon) for name, lat, lon in CITIES]
 
 
 @app.get("/api/destinations", response_model=list[str])

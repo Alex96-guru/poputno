@@ -1,11 +1,15 @@
 import type {
+  City,
+  Listing,
+  ListingDraft,
   Person,
   ProfileUpdate,
+  PublicUser,
   SettingsUpdate,
   User,
   UserSettings,
 } from "./types";
-import { MOCK_PERSONS, POPULAR_DESTINATIONS } from "./mock-data";
+import { MOCK_PERSONS } from "./mock-data";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 const TIMEOUT_MS = 8000;
@@ -27,10 +31,27 @@ export async function fetchPersons(): Promise<Person[]> {
   return (await fetchJson<Person[]>("/api/persons")) ?? MOCK_PERSONS;
 }
 
-export async function fetchPopularDestinations(): Promise<string[]> {
-  return (
-    (await fetchJson<string[]>("/api/destinations")) ?? POPULAR_DESTINATIONS
-  );
+/** Public feed for the catalog. An unreachable API renders an empty catalog. */
+export async function fetchListings(): Promise<Listing[]> {
+  return (await fetchJson<Listing[]>("/api/listings")) ?? [];
+}
+
+/** null when the listing is gone or the API is unreachable — both are a 404. */
+export function fetchListing(id: string): Promise<Listing | null> {
+  return fetchJson<Listing>(`/api/listings/${id}`);
+}
+
+export function fetchPublicUser(id: string): Promise<PublicUser | null> {
+  return fetchJson<PublicUser>(`/api/users/${id}`);
+}
+
+export async function fetchUserListings(id: string): Promise<Listing[]> {
+  return (await fetchJson<Listing[]>(`/api/users/${id}/listings`)) ?? [];
+}
+
+/** Cities the radius filter can measure from. */
+export async function fetchCities(): Promise<City[]> {
+  return (await fetchJson<City[]>("/api/cities")) ?? [];
 }
 
 /* ------------------------------------------------------------------ auth */
@@ -87,6 +108,7 @@ export function register(input: {
   email: string;
   password: string;
   birthDate: string;
+  gender: string;
 }): Promise<AuthResponse> {
   return request<AuthResponse>("/api/auth/register", {
     method: "POST",
@@ -141,4 +163,43 @@ export function changePassword(
 
 export function deleteMe(token: string): Promise<void> {
   return request<void>("/api/users/me", { method: "DELETE", token });
+}
+
+/* -------------------------------------------------------------- listings */
+
+export function createListing(
+  token: string,
+  draft: ListingDraft,
+): Promise<Listing> {
+  return request<Listing>("/api/listings", {
+    method: "POST",
+    token,
+    body: JSON.stringify(draft),
+  });
+}
+
+export function fetchMyListings(token: string): Promise<Listing[]> {
+  return request<Listing[]>("/api/users/me/listings", { token });
+}
+
+export function deleteListing(token: string, id: string): Promise<void> {
+  return request<void>(`/api/listings/${id}`, { method: "DELETE", token });
+}
+
+/* ----------------------------------------------------------------- saved */
+
+export function fetchSavedIds(token: string): Promise<string[]> {
+  return request<string[]>("/api/users/me/saved/ids", { token });
+}
+
+export function fetchSavedListings(token: string): Promise<Listing[]> {
+  return request<Listing[]>("/api/users/me/saved", { token });
+}
+
+export function saveListing(token: string, id: string): Promise<void> {
+  return request<void>(`/api/users/me/saved/${id}`, { method: "POST", token });
+}
+
+export function unsaveListing(token: string, id: string): Promise<void> {
+  return request<void>(`/api/users/me/saved/${id}`, { method: "DELETE", token });
 }

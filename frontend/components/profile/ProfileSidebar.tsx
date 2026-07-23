@@ -18,11 +18,17 @@ import Avatar from "./Avatar";
 
 export type ProfileTab = "listings" | "reviews" | "saved" | "settings";
 
+/** Anchors on /profile/edit, so each affordance opens where it points. */
+export type EditSection = "basics" | "interests" | "about";
+
+/** Tags shown on the "О себе" card before the rest collapse into a "+N". */
+const INTERESTS_PREVIEW = 8;
+
 interface Props {
   user: User;
   active: ProfileTab;
   onNavigate: (tab: ProfileTab) => void;
-  onEdit: () => void;
+  onEdit: (section?: EditSection) => void;
   listingsCount: number;
   savedCount: number;
 }
@@ -59,7 +65,7 @@ function ProfileCard({
   onNavigate,
 }: {
   user: User;
-  onEdit: () => void;
+  onEdit: (section?: EditSection) => void;
   onNavigate: (tab: ProfileTab) => void;
 }) {
   return (
@@ -72,7 +78,7 @@ function ProfileCard({
         />
         <button
           type="button"
-          onClick={onEdit}
+          onClick={() => onEdit("basics")}
           aria-label="Сменить фото"
           className="absolute bottom-0 right-0 grid h-9 w-9 place-items-center rounded-pill border-[3px] border-white bg-accent text-white transition hover:bg-accent-ink"
         >
@@ -106,7 +112,7 @@ function ProfileCard({
 
       <button
         type="button"
-        onClick={onEdit}
+        onClick={() => onEdit()}
         className="flex w-full items-center justify-center gap-2 rounded-btn bg-accent py-[13px] text-[15px] font-bold text-white transition hover:bg-accent-ink"
       >
         <Pencil className="h-4 w-4" />
@@ -185,14 +191,20 @@ function Completeness({ user }: { user: User }) {
 
 /* ----------------------------------------------------------------- about */
 
-function About({ user, onEdit }: { user: User; onEdit: () => void }) {
+function About({
+  user,
+  onEdit,
+}: {
+  user: User;
+  onEdit: (section?: EditSection) => void;
+}) {
   return (
     <section className="flex flex-col gap-3 rounded-card border border-border bg-white p-[22px]">
       <header className="flex items-center justify-between">
         <h2 className="text-[15px] font-bold text-ink">О себе</h2>
         <button
           type="button"
-          onClick={onEdit}
+          onClick={() => onEdit("about")}
           aria-label="Редактировать описание"
           className="grid h-[30px] w-[30px] place-items-center rounded-btn bg-surface-2 text-muted transition hover:text-ink"
         >
@@ -208,8 +220,10 @@ function About({ user, onEdit }: { user: User; onEdit: () => void }) {
       </p>
 
       {user.interests.length > 0 && (
+        // The edit screen offers ~50 chips, so the card shows a taste of them
+        // and defers the rest rather than growing without bound.
         <div className="flex flex-wrap gap-2">
-          {user.interests.map((tag) => (
+          {user.interests.slice(0, INTERESTS_PREVIEW).map((tag) => (
             <span
               key={tag}
               className="rounded-pill bg-surface-2 px-3 py-1.5 text-[12px] font-semibold text-muted"
@@ -217,6 +231,15 @@ function About({ user, onEdit }: { user: User; onEdit: () => void }) {
               {tag}
             </span>
           ))}
+          {user.interests.length > INTERESTS_PREVIEW && (
+            <button
+              type="button"
+              onClick={() => onEdit("interests")}
+              className="rounded-pill px-2 py-1.5 text-[12px] font-semibold text-accent-ink transition hover:underline"
+            >
+              +{user.interests.length - INTERESTS_PREVIEW}
+            </button>
+          )}
         </div>
       )}
     </section>
