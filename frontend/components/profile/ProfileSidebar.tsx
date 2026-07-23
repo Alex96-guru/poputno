@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   BadgeCheck,
   Bookmark,
@@ -12,6 +13,8 @@ import {
   Settings,
   Share2,
   Star,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
 import type { User } from "@/lib/types";
 import Avatar from "./Avatar";
@@ -44,6 +47,7 @@ export default function ProfileSidebar({
   return (
     <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-96">
       <ProfileCard user={user} onEdit={onEdit} onNavigate={onNavigate} />
+      <Promo onEdit={onEdit} />
       <Completeness user={user} />
       <About user={user} onEdit={onEdit} />
       <QuickNav
@@ -142,6 +146,40 @@ function ProfileCard({
         </button>
       </div>
     </section>
+  );
+}
+
+/* --------------------------------------------------------------- promo */
+
+/** The two nudges from the mobile profile: fuller profile, faster search. */
+function Promo({ onEdit }: { onEdit: (section?: EditSection) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        type="button"
+        onClick={() => onEdit()}
+        className="flex flex-col items-center gap-2.5 rounded-card border border-border bg-white p-4 text-center transition hover:border-accent"
+      >
+        <span className="grid h-11 w-11 place-items-center rounded-pill bg-teal-soft text-teal">
+          <TrendingUp className="h-[22px] w-[22px]" />
+        </span>
+        <span className="text-[13px] font-semibold leading-tight text-ink">
+          Получите больше откликов
+        </span>
+      </button>
+
+      <Link
+        href="/catalog"
+        className="flex flex-col items-center gap-2.5 rounded-card border border-border bg-white p-4 text-center transition hover:border-accent"
+      >
+        <span className="grid h-11 w-11 place-items-center rounded-pill bg-[#FBEFD8] text-[#B07B10]">
+          <Zap className="h-[22px] w-[22px]" />
+        </span>
+        <span className="text-[13px] font-semibold leading-tight text-ink">
+          Ускорьте поиск компаньона
+        </span>
+      </Link>
+    </div>
   );
 }
 

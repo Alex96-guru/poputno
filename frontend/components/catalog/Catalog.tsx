@@ -9,11 +9,13 @@ import {
   ChevronUp,
   MapPin,
   Search,
+  SlidersHorizontal,
   UserRound,
   Wallet,
   X,
 } from "lucide-react";
 import ListingCard from "@/components/listing/ListingCard";
+import ListingCardMini from "@/components/listing/ListingCardMini";
 import Dropdown from "@/components/ui/Dropdown";
 import InterestAccordion from "@/components/ui/InterestAccordion";
 import Reveal from "@/components/Reveal";
@@ -78,6 +80,7 @@ export default function Catalog({ listings, cities, initialFilters }: Props) {
     initialFilters ?? EMPTY_FILTERS,
   );
   const [sort, setSort] = useState<SortKey>("recent");
+  const [showFilters, setShowFilters] = useState(false);
 
   const patch = (changes: Partial<CatalogFilters>) =>
     setFilters((prev) => ({ ...prev, ...changes }));
@@ -114,15 +117,28 @@ export default function Catalog({ listings, cities, initialFilters }: Props) {
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row">
-          <FilterPanel
-            filters={filters}
-            patch={patch}
-            toggleIn={toggleIn}
-            onReset={() => setFilters(EMPTY_FILTERS)}
-            knownOrigin={findCity(cityIndex, filters.origin) !== undefined}
-            homeCity={user?.city ?? ""}
-            resultCount={visible.length}
-          />
+          {/* On a phone the panel is a wall of controls, so it folds away. */}
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            aria-expanded={showFilters}
+            className="flex items-center justify-center gap-2 rounded-btn border border-border bg-white py-3 text-[15px] font-semibold text-ink lg:hidden"
+          >
+            <SlidersHorizontal className="h-[18px] w-[18px] text-accent" />
+            {showFilters ? "Скрыть фильтры" : "Фильтры и поиск"}
+          </button>
+
+          <div className={showFilters ? "block" : "hidden lg:block"}>
+            <FilterPanel
+              filters={filters}
+              patch={patch}
+              toggleIn={toggleIn}
+              onReset={() => setFilters(EMPTY_FILTERS)}
+              knownOrigin={findCity(cityIndex, filters.origin) !== undefined}
+              homeCity={user?.city ?? ""}
+              resultCount={visible.length}
+            />
+          </div>
 
           <section
             id="results"
@@ -185,13 +201,29 @@ export default function Catalog({ listings, cities, initialFilters }: Props) {
                 onReset={() => setFilters(EMPTY_FILTERS)}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {visible.map((listing, i) => (
-                  <Reveal key={listing.id} delay={(i % 3) * 90} className="h-full">
-                    <ListingCard listing={listing} href={`/listing/${listing.id}`} />
-                  </Reveal>
-                ))}
-              </div>
+              <>
+                {/* Phone: three compact cards per row. */}
+                <div className="grid grid-cols-3 gap-2.5 sm:hidden">
+                  {visible.map((listing) => (
+                    <ListingCardMini key={listing.id} listing={listing} />
+                  ))}
+                </div>
+                {/* Tablet and up: the full card. */}
+                <div className="hidden gap-6 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+                  {visible.map((listing, i) => (
+                    <Reveal
+                      key={listing.id}
+                      delay={(i % 3) * 90}
+                      className="h-full"
+                    >
+                      <ListingCard
+                        listing={listing}
+                        href={`/listing/${listing.id}`}
+                      />
+                    </Reveal>
+                  ))}
+                </div>
+              </>
             )}
           </section>
         </div>

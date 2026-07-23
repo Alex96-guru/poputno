@@ -1,5 +1,6 @@
 import Reveal from "./Reveal";
 import SearchBar from "./SearchBar";
+import MobileSearch from "./MobileSearch";
 import type { City } from "@/lib/types";
 
 const COLLAGE_A = [
@@ -17,26 +18,34 @@ const unsplash = (id: string) =>
 
 export default function Hero({ cities }: { cities: City[] }) {
   return (
-    <section className="bg-surface-2 px-5 py-12 sm:px-8 lg:px-20 lg:py-16">
+    <section className="bg-surface-2 px-4 py-4 sm:px-8 sm:py-12 lg:px-20 lg:py-16">
       <div className="mx-auto flex max-w-content flex-col gap-10 lg:flex-row lg:items-center lg:gap-16">
-        <Reveal className="flex w-full min-w-0 flex-col gap-[22px] lg:w-auto lg:flex-1">
-          <span className="text-[14px] font-bold uppercase tracking-[2.5px] text-accent-ink">
+        <Reveal className="flex w-full min-w-0 flex-col gap-4 sm:gap-[22px] lg:w-auto lg:flex-1">
+          {/* The headline is the desktop hero; the phone opens straight on search. */}
+          <span className="hidden text-[14px] font-bold uppercase tracking-[2.5px] text-accent-ink sm:inline">
             Сообщество путешественников
           </span>
 
-          <h1 className="font-display text-[40px] font-bold leading-[1.06] text-ink sm:text-[52px] lg:text-[62px]">
+          <h1 className="hidden font-display font-bold leading-[1.06] text-ink sm:block sm:text-[52px] lg:text-[62px]">
             Найди своего попутчика
           </h1>
 
-          <p className="max-w-[560px] text-[18px] leading-[1.5] text-muted">
+          <p className="hidden max-w-[560px] text-[18px] leading-[1.5] text-muted sm:block">
             Тысячи людей ищут компанию для поездок прямо сейчас. Найди своих — по
             направлению, датам и духу приключений.
           </p>
 
-          <SearchBar cities={cities} />
+          {/* Phone gets the compact search block; tablet and up the full bar. */}
+          <div className="sm:hidden">
+            <MobileSearch />
+          </div>
+          <div className="hidden sm:block">
+            <SearchBar cities={cities} />
+          </div>
         </Reveal>
 
-        <Reveal delay={120}>
+        {/* Collage is desktop-only; the phone layout has no room for it. */}
+        <Reveal delay={120} className="hidden lg:block">
           <Collage />
         </Reveal>
       </div>

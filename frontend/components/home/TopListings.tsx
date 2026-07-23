@@ -60,14 +60,17 @@ const LOOK: Record<
 
 export default function TopListings() {
   return (
-    <section className="bg-gradient-to-b from-[#F7EBE0] via-[#FBF6F0] to-[#F6EADF] px-5 pb-10 pt-16 sm:px-8 lg:px-20">
-      <div className="mx-auto flex max-w-content flex-col gap-[34px]">
+    <section className="bg-gradient-to-b from-[#F7EBE0] via-[#FBF6F0] to-[#F6EADF] px-4 pb-8 pt-7 sm:px-8 sm:pb-10 sm:pt-16 lg:px-20">
+      <div className="mx-auto flex max-w-content flex-col gap-6 sm:gap-[34px]">
         <Head />
-        {TOP_GROUPS.map((group, i) => (
-          <Reveal key={group.key} delay={i * 80}>
-            <Shelf group={group} />
-          </Reveal>
-        ))}
+        {/* "Друзья по интересам" is intentionally left off the home page. */}
+        {TOP_GROUPS.filter((group) => group.key !== "friends").map(
+          (group, i) => (
+            <Reveal key={group.key} delay={i * 80}>
+              <Shelf group={group} />
+            </Reveal>
+          ),
+        )}
       </div>
     </section>
   );
@@ -77,17 +80,17 @@ function Head() {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-1">
-        <h2 className="font-display text-[32px] font-bold text-ink">
+        <h2 className="font-display text-[22px] font-bold text-accent-ink sm:text-[32px] sm:text-ink">
           Топ-объявления
         </h2>
-        <p className="text-[15px] text-muted">
+        <p className="hidden text-[15px] text-muted sm:block">
           Лучшие предложения сообщества — путешествия, встречи и гостеприимство
         </p>
       </div>
 
       <button
         type="button"
-        className="flex w-fit shrink-0 items-center gap-[7px] rounded-pill bg-accent-soft px-[15px] py-[9px] text-[14px] font-semibold text-accent-ink transition hover:bg-accent hover:text-white"
+        className="flex w-fit shrink-0 items-center gap-[7px] rounded-pill bg-accent-soft px-3 py-[7px] text-[12px] font-semibold text-accent-ink transition hover:bg-accent hover:text-white sm:px-[15px] sm:py-[9px] sm:text-[14px]"
       >
         <CircleArrowUp className="h-4 w-4" />
         Как сюда попасть
@@ -104,37 +107,47 @@ function Shelf({ group }: { group: TopGroup }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <span
-            className={`grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[12px] ${tile}`}
+            className={`grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[10px] sm:h-[38px] sm:w-[38px] sm:rounded-[12px] ${tile}`}
           >
-            <Icon className="h-[21px] w-[21px]" />
+            <Icon className="h-[17px] w-[17px] sm:h-[21px] sm:w-[21px]" />
           </span>
           <div className="flex flex-col">
-            <h3 className="font-display text-[22px] font-bold leading-tight text-ink">
+            <h3 className="font-display text-[16px] font-bold leading-tight text-ink sm:text-[22px]">
               {group.title}
             </h3>
-            <p className="text-[13px] text-muted">{group.caption}</p>
+            <p className="hidden text-[13px] text-muted sm:block">
+              {group.caption}
+            </p>
           </div>
         </div>
 
         <Link
           href={seeAll}
-          className="flex w-fit shrink-0 items-center gap-[5px] rounded-pill border border-border bg-white/70 px-3.5 py-2 text-[13px] font-semibold text-muted transition hover:border-accent hover:text-ink"
+          className="flex w-fit shrink-0 items-center gap-[5px] rounded-pill border border-transparent px-1 py-1 text-[12px] font-semibold text-muted transition hover:text-ink sm:border-border sm:bg-white/70 sm:px-3.5 sm:py-2 sm:text-[13px] sm:hover:border-accent"
         >
-          Показать все
+          <span className="hidden sm:inline">Показать все</span>
+          <span className="sm:hidden">Все</span>
           <ChevronRight className="h-[15px] w-[15px]" />
         </Link>
       </div>
 
       {group.key === "friends" && <Chips />}
 
+      {/* Phone: three per row; tablet two; desktop four. */}
       <div
-        className={`grid gap-[18px] rounded-card p-5 sm:grid-cols-2 xl:grid-cols-4 ${panel}`}
+        className={`grid grid-cols-3 gap-2.5 rounded-card p-3 sm:grid-cols-2 sm:gap-[18px] sm:p-5 xl:grid-cols-4 ${panel}`}
       >
-        {group.listings.map((listing) => (
-          <Card key={listing.id} listing={listing} kind={group.key} />
+        {group.listings.map((listing, i) => (
+          <Card
+            key={listing.id}
+            listing={listing}
+            kind={group.key}
+            // Phone shows one row of three; the fourth returns from sm up.
+            className={i >= 3 ? "hidden sm:flex" : ""}
+          />
         ))}
       </div>
     </div>
@@ -160,14 +173,24 @@ function Chips() {
   );
 }
 
-function Card({ listing, kind }: { listing: TopListing; kind: TopGroupKey }) {
+function Card({
+  listing,
+  kind,
+  className = "",
+}: {
+  listing: TopListing;
+  kind: TopGroupKey;
+  className?: string;
+}) {
   // Hosts get a warm "В гости" call to action; everyone else gets a message.
   const hosting = listing.status === "Принимаю";
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-[18px] border border-border bg-white shadow-[0_10px_24px_rgba(42,37,33,0.13)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(42,37,33,0.18)]">
+    <article
+      className={`group flex flex-col overflow-hidden rounded-[18px] border border-border bg-white shadow-[0_10px_24px_rgba(42,37,33,0.13)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(42,37,33,0.18)] ${className}`}
+    >
       <div
-        className="flex h-[300px] items-start justify-between bg-cover bg-center p-3 sm:h-[340px] xl:h-[376px]"
+        className="flex h-[104px] items-start justify-between bg-cover bg-center p-2 sm:h-[340px] sm:p-3 xl:h-[376px] [&>*]:hidden sm:[&>*]:flex"
         style={{ backgroundImage: `url(${listing.photoUrl})` }}
       >
         {listing.status ? (
@@ -206,13 +229,13 @@ function Card({ listing, kind }: { listing: TopListing; kind: TopGroupKey }) {
       </div>
 
       <div
-        className={`flex flex-1 flex-col px-3.5 pb-3.5 pt-[13px] ${
-          kind === "friends" ? "gap-[9px]" : "gap-2"
+        className={`flex flex-1 flex-col px-2 pb-2.5 pt-2 sm:px-3.5 sm:pb-3.5 sm:pt-[13px] ${
+          kind === "friends" ? "gap-[9px]" : "gap-1 sm:gap-2"
         }`}
       >
         <header className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5">
-            <span className="text-[15px] font-bold text-ink">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-[12px] font-bold text-ink sm:text-[15px]">
               {listing.name}, {listing.age}
             </span>
             {listing.online && (
@@ -222,7 +245,7 @@ function Card({ listing, kind }: { listing: TopListing; kind: TopGroupKey }) {
               />
             )}
           </span>
-          <span className="flex shrink-0 items-center gap-[3px] text-[13px] font-semibold text-ink">
+          <span className="hidden shrink-0 items-center gap-[3px] text-[13px] font-semibold text-ink sm:flex">
             <Star className="h-[14px] w-[14px] fill-gold text-gold" />
             {listing.rating.toFixed(1)}
           </span>
@@ -235,17 +258,17 @@ function Card({ listing, kind }: { listing: TopListing; kind: TopGroupKey }) {
           </p>
         ) : (
           <>
-            <p className="flex items-center gap-1.5 text-[14px] font-semibold text-muted">
-              <MapPin className="h-[14px] w-[14px] shrink-0 text-accent" />
+            <p className="flex items-center gap-1 text-[11px] font-semibold text-muted sm:gap-1.5 sm:text-[14px]">
+              <MapPin className="h-3 w-3 shrink-0 text-accent sm:h-[14px] sm:w-[14px]" />
               <span className="truncate">{listing.location}</span>
             </p>
-            <p className="text-[12.5px] leading-[1.4] text-subtle">
+            <p className="hidden text-[12.5px] leading-[1.4] text-subtle sm:block">
               {listing.description}
             </p>
           </>
         )}
 
-        <footer className="mt-auto flex items-center justify-between gap-2 pt-1">
+        <footer className="mt-auto hidden items-center justify-between gap-2 pt-1 sm:flex">
           {kind === "friends" ? (
             <span className="rounded-pill bg-accent-soft px-2.5 py-[5px] text-[11px] font-bold text-accent-ink">
               {listing.commonInterests} общих

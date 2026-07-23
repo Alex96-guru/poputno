@@ -35,18 +35,18 @@ const STEPS: Step[] = [
 
 export default function HowItWorks() {
   return (
-    <section className="bg-surface-2 px-5 py-16 sm:px-8 lg:px-20 lg:py-20">
-      <div className="mx-auto flex max-w-content flex-col items-center gap-11">
-        <Reveal className="flex flex-col items-center gap-2.5">
-          <h2 className="font-display text-[38px] font-bold text-ink">
+    <section className="bg-surface-2 px-4 py-8 sm:px-8 sm:py-16 lg:px-20 lg:py-20">
+      <div className="mx-auto flex max-w-content flex-col items-center gap-6 sm:gap-11">
+        <Reveal className="flex flex-col items-center gap-2 text-center sm:gap-2.5">
+          <h2 className="font-display text-[22px] font-bold text-ink sm:text-[38px]">
             Как это работает
           </h2>
-          <p className="text-[17px] text-muted">
+          <p className="hidden text-[17px] text-muted sm:block">
             Три простых шага до нового приключения
           </p>
         </Reveal>
 
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {STEPS.map((step, i) => (
             <Reveal key={step.number} delay={i * 110} className="h-full">
               <StepCard step={step} />
@@ -58,21 +58,30 @@ export default function HowItWorks() {
   );
 }
 
-function StepCard({ step: { icon: Icon, number, title, description } }: { step: Step }) {
+function StepCard({
+  step: { icon: Icon, number, title, description },
+}: {
+  step: Step;
+}) {
   return (
-    <article className="flex h-full flex-col gap-4 rounded-card border border-border bg-white p-8">
-      <div className="flex items-center gap-4">
-        <span className="grid h-14 w-14 place-items-center rounded-btn bg-accent-soft text-accent-ink">
-          <Icon className="h-[26px] w-[26px]" />
+    <article className="flex h-full flex-row items-center gap-3.5 rounded-card border border-border bg-white p-4 sm:flex-col sm:items-start sm:gap-4 sm:p-8">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+        <span className="grid h-11 w-11 place-items-center rounded-btn bg-accent-soft text-accent-ink sm:h-14 sm:w-14">
+          <Icon className="h-[22px] w-[22px] sm:h-[26px] sm:w-[26px]" />
         </span>
-        <span className="font-display text-[34px] font-bold text-subtle">
+        <span className="hidden font-display text-[34px] font-bold text-subtle sm:inline">
           {number}
         </span>
       </div>
 
-      <h3 className="font-display text-[23px] font-bold text-ink">{title}</h3>
-
-      <p className="text-[15px] leading-[1.5] text-muted">{description}</p>
+      <div className="flex min-w-0 flex-col gap-1 sm:gap-4">
+        <h3 className="font-display text-[16px] font-bold text-ink sm:text-[23px]">
+          {title}
+        </h3>
+        <p className="text-[13px] leading-[1.4] text-muted sm:text-[15px] sm:leading-[1.5]">
+          {description}
+        </p>
+      </div>
     </article>
   );
 }

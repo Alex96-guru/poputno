@@ -10,9 +10,11 @@ import {
   Compass,
   House,
   LogOut,
+  Menu,
   MessageCircle,
   Plane,
   User,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -64,16 +66,33 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function Nav() {
   const pathname = usePathname() ?? "";
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close the drawer whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 h-[78px] border-b border-border bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-full max-w-content items-center justify-between gap-4 px-5 sm:px-8 lg:px-20">
-        <Link href="/" className="flex shrink-0 items-center gap-[9px]">
-          <Compass className="h-7 w-7 text-accent" strokeWidth={2} />
-          <span className="font-display text-[22px] font-bold text-ink sm:text-[25px]">
-            Попутно
-          </span>
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-border bg-white/95 backdrop-blur">
+      <div className="mx-auto flex h-[78px] max-w-content items-center justify-between gap-4 px-5 sm:px-8 lg:px-20">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Меню"
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+            className="grid h-10 w-10 place-items-center rounded-btn text-ink transition hover:bg-surface-2 lg:hidden"
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+          <Link href="/" className="flex shrink-0 items-center gap-[9px]">
+            <Compass className="h-7 w-7 text-accent" strokeWidth={2} />
+            <span className="font-display text-[22px] font-bold text-ink sm:text-[25px]">
+              Попутно
+            </span>
+          </Link>
+        </div>
 
         <nav className="hidden items-center gap-7 lg:flex xl:gap-[38px]">
           {NAV_LINKS.map(({ href, label, sections }) => (
@@ -110,6 +129,44 @@ export default function Nav() {
           <ProfileMenu />
         </div>
       </div>
+
+      {mobileOpen && (
+        <nav className="flex flex-col gap-1 border-t border-border bg-white px-5 pb-4 pt-2 lg:hidden">
+          {NAV_LINKS.map(({ href, label, sections }) => (
+            <div key={href} className="flex flex-col">
+              <Link
+                href={href}
+                aria-current={isActive(pathname, href) ? "page" : undefined}
+                className={`rounded-btn px-2 py-3 text-[16px] transition hover:bg-surface-2 ${
+                  isActive(pathname, href)
+                    ? "font-semibold text-ink"
+                    : "font-medium text-muted"
+                }`}
+              >
+                {label}
+              </Link>
+              {sections && (
+                <div className="mb-1 flex flex-col gap-0.5 pl-2">
+                  {sections.map(({ href: to, label: title, icon: Icon, tile }) => (
+                    <Link
+                      key={to}
+                      href={to}
+                      className="flex items-center gap-2.5 rounded-btn px-2 py-2 transition hover:bg-surface-2"
+                    >
+                      <span
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-[10px] ${tile}`}
+                      >
+                        <Icon className="h-[18px] w-[18px]" />
+                      </span>
+                      <span className="text-[15px] text-ink">{title}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

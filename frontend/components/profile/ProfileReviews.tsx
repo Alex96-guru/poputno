@@ -1,6 +1,7 @@
 "use client";
 
 import ListingCard from "@/components/listing/ListingCard";
+import ListingCardMini from "@/components/listing/ListingCardMini";
 import { Stars, plural } from "@/components/profile/ProfileSidebar";
 import type { Listing, User } from "@/lib/types";
 
@@ -82,15 +83,24 @@ export default function ProfileReviews({ user, reviews, saved }: Props) {
             Отмечайте объявления сердечком — они появятся здесь.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {saved.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                href={`/listing/${listing.id}`}
-              />
-            ))}
-          </div>
+          <>
+            {/* Phone: three compact cards per row. */}
+            <div className="grid grid-cols-3 gap-2.5 sm:hidden">
+              {saved.map((listing) => (
+                <ListingCardMini key={listing.id} listing={listing} />
+              ))}
+            </div>
+            {/* Tablet and up: the full card. */}
+            <div className="hidden gap-6 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+              {saved.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  href={`/listing/${listing.id}`}
+                />
+              ))}
+            </div>
+          </>
         )}
       </section>
     </div>

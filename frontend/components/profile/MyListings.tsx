@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus, Trash2 } from "lucide-react";
 import ListingCard from "@/components/listing/ListingCard";
+import ListingCardMini from "@/components/listing/ListingCardMini";
 import { formatPostedAt } from "@/lib/dates";
 import type { Listing } from "@/lib/types";
 
@@ -43,16 +44,30 @@ export default function MyListings({ listings, loading, onDelete }: Props) {
           Загружаем ваши объявления…
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {listings.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              actions={<OwnerActions listing={listing} onDelete={onDelete} />}
-            />
-          ))}
-          <CreatePlaceholder />
-        </div>
+        <>
+          {/* Phone: three compact cards per row. */}
+          <div className="grid grid-cols-3 gap-2.5 sm:hidden">
+            {listings.map((listing) => (
+              <ListingCardMini
+                key={listing.id}
+                listing={listing}
+                topRight={<MiniDelete id={listing.id} onDelete={onDelete} />}
+              />
+            ))}
+            <CreatePlaceholder mini />
+          </div>
+          {/* Tablet and up: the full card with the manage row. */}
+          <div className="hidden gap-6 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+            {listings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                actions={<OwnerActions listing={listing} onDelete={onDelete} />}
+              />
+            ))}
+            <CreatePlaceholder />
+          </div>
+        </>
       )}
     </section>
   );
@@ -92,7 +107,50 @@ function OwnerActions({
   );
 }
 
-function CreatePlaceholder() {
+/** A small trash button for the mobile owner card, in place of the save heart. */
+function MiniDelete({
+  id,
+  onDelete,
+}: {
+  id: string;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const [removing, setRemoving] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={removing}
+      aria-label="Снять с публикации"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setRemoving(true);
+        void onDelete(id).finally(() => setRemoving(false));
+      }}
+      className="grid h-7 w-7 place-items-center rounded-pill bg-white/95 text-[#C0392B] transition hover:bg-white disabled:opacity-60"
+    >
+      <Trash2 className="h-[15px] w-[15px]" />
+    </button>
+  );
+}
+
+function CreatePlaceholder({ mini }: { mini?: boolean }) {
+  if (mini) {
+    return (
+      <Link
+        href="/create"
+        className="flex min-h-[150px] flex-col items-center justify-center gap-2 rounded-[12px] border-2 border-dashed border-subtle bg-surface-2 p-2 text-center transition hover:border-accent"
+      >
+        <span className="grid h-10 w-10 place-items-center rounded-pill bg-accent-soft text-accent-ink">
+          <Plus className="h-5 w-5" />
+        </span>
+        <span className="text-[11px] font-semibold leading-tight text-ink">
+          Новое объявление
+        </span>
+      </Link>
+    );
+  }
+
   return (
     <Link
       href="/create"
