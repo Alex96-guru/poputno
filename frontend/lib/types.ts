@@ -103,6 +103,35 @@ export interface City {
   lon: number;
 }
 
+/* ----------------------------------------------------------- messaging */
+
+export interface MessageUser {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string;
+}
+
+export interface Message {
+  id: string;
+  body: string;
+  /** Inline data: URI when the message carries a photo. */
+  imageUrl: string | null;
+  createdAt: string;
+  /** True when the signed-in user sent it. */
+  mine: boolean;
+  /** True once the recipient has opened the thread — the read receipt. */
+  read: boolean;
+}
+
+export interface Conversation {
+  user: MessageUser;
+  lastBody: string;
+  lastAt: string;
+  lastMine: boolean;
+  unread: number;
+}
+
 /** The four kinds of listing the home page curates into separate shelves. */
 export type TopGroupKey = "trips" | "meetups" | "hosting" | "friends";
 

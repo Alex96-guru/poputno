@@ -171,13 +171,13 @@ function Info({ listing }: { listing: Listing }) {
           Понравился этот попутчик?
         </h3>
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
+          <Link
+            href={`/messages?to=${author.id}`}
             className="flex flex-1 items-center justify-center gap-2 rounded-btn bg-accent py-4 text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(192,86,60,0.25)] transition hover:bg-accent-ink"
           >
             <MessageCircle className="h-5 w-5" />
             Написать
-          </button>
+          </Link>
           <SaveButton listingId={listing.id} authorId={author.id} />
         </div>
       </div>
@@ -260,12 +260,12 @@ function AuthorSection({ listing }: { listing: Listing }) {
         </div>
 
         <div className="flex w-full shrink-0 flex-col gap-2.5 lg:w-[200px]">
-          <button
-            type="button"
-            className="rounded-btn bg-accent py-[13px] text-[15px] font-semibold text-white transition hover:bg-accent-ink"
+          <Link
+            href={`/messages?to=${author.id}`}
+            className="rounded-btn bg-accent py-[13px] text-center text-[15px] font-semibold text-white transition hover:bg-accent-ink"
           >
             Написать
-          </button>
+          </Link>
           <Link
             href={`/profile/${author.id}`}
             className="rounded-btn bg-surface-2 py-[13px] text-center text-[15px] font-semibold text-ink transition hover:bg-border"

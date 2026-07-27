@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { fetchUnread } from "@/lib/api";
 import Avatar from "./profile/Avatar";
 
 interface SubLink {
@@ -66,12 +67,33 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function Nav() {
   const pathname = usePathname() ?? "";
+  const { token } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
 
   // Close the drawer whenever the route changes.
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  // Keep the message badge current with light polling.
+  useEffect(() => {
+    if (!token) {
+      setUnread(0);
+      return;
+    }
+    let alive = true;
+    const load = () =>
+      fetchUnread(token)
+        .then((n) => alive && setUnread(n))
+        .catch(() => undefined);
+    load();
+    const id = setInterval(load, 15000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [token, pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-white/95 backdrop-blur">
@@ -113,9 +135,11 @@ export default function Nav() {
             className="relative grid h-11 w-11 place-items-center rounded-pill bg-surface-2 text-muted transition hover:text-ink"
           >
             <MessageCircle className="h-5 w-5" />
-            <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-pill border-2 border-white bg-accent px-1 text-[10px] font-bold text-white">
-              3
-            </span>
+            {unread > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-pill border-2 border-white bg-accent px-1 text-[10px] font-bold text-white">
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
           </Link>
 
           <button

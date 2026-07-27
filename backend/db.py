@@ -56,6 +56,19 @@ CREATE TABLE IF NOT EXISTS saved_listings (
 );
 
 CREATE INDEX IF NOT EXISTS saved_user ON saved_listings (user_id);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id            TEXT PRIMARY KEY,
+    pair          TEXT NOT NULL,
+    sender_id     TEXT NOT NULL,
+    recipient_id  TEXT NOT NULL,
+    body          TEXT NOT NULL,
+    created_at    TEXT NOT NULL,
+    read_at       TEXT
+);
+
+CREATE INDEX IF NOT EXISTS messages_pair ON messages (pair, created_at);
+CREATE INDEX IF NOT EXISTS messages_recipient ON messages (recipient_id, read_at);
 """
 
 # Columns added after the first release. init_db() ALTERs any that a previously
@@ -109,6 +122,13 @@ _ADDED_LISTING_COLUMNS = {
 }
 
 
+# For the messages table.
+_ADDED_MESSAGE_COLUMNS = {
+    # An inline data: URI when the message carries a photo.
+    "image_url": "TEXT",
+}
+
+
 @contextmanager
 def connect() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(DB_PATH)
@@ -133,3 +153,4 @@ def init_db() -> None:
         conn.executescript(_SCHEMA)
         _add_missing(conn, "users", _ADDED_COLUMNS)
         _add_missing(conn, "listings", _ADDED_LISTING_COLUMNS)
+        _add_missing(conn, "messages", _ADDED_MESSAGE_COLUMNS)

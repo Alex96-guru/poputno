@@ -14,6 +14,7 @@ import {
   Star,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import ListingCard from "@/components/listing/ListingCard";
 import Reveal from "@/components/Reveal";
 import type { Listing, PublicUser } from "@/lib/types";
@@ -66,13 +67,13 @@ export default function ProfilePage({ user, listings }: Props) {
             </div>
           </div>
 
-          <button
-            type="button"
+          <Link
+            href={`/messages?to=${user.id}`}
             className="flex items-center justify-center gap-2.5 rounded-btn bg-accent px-[26px] py-[13px] text-[16px] font-semibold text-white transition hover:bg-accent-ink"
           >
             <MessageCircle className="h-[19px] w-[19px]" />
             Написать
-          </button>
+          </Link>
         </header>
 
         {user.bio && (

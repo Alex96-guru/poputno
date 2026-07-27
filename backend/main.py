@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 import listings as listings_repo
+import messages as messages_repo
 import users as users_repo
 from cities import CITIES
 from config import ALLOWED_ORIGINS
@@ -13,14 +14,17 @@ from db import init_db
 from schemas import (
     AuthResponse,
     City,
+    Conversation,
     Listing,
     ListingCreate,
     LoginRequest,
+    Message,
     PasswordChange,
     Person,
     ProfileUpdate,
     PublicUser,
     RegisterRequest,
+    SendMessageRequest,
     SettingsUpdate,
     User,
     UserSettings,
@@ -243,6 +247,79 @@ def delete_listing(listing_id: str, row=Depends(current_user)) -> Response:
     if not listings_repo.delete(listing_id, row["id"]):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Объявление не найдено")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ------------------------------------------------------------------ messages
+
+
+def _to_message(row, me: str) -> Message:
+    return Message(
+        id=row["id"],
+        body=row["body"],
+        image_url=row["image_url"],
+        created_at=row["created_at"],
+        mine=row["sender_id"] == me,
+        read=row["read_at"] is not None,
+    )
+
+
+@app.get(
+    "/api/conversations",
+    response_model=list[Conversation],
+    response_model_by_alias=True,
+)
+def list_conversations(row=Depends(current_user)) -> list[Conversation]:
+    return [Conversation(**c) for c in messages_repo.list_conversations(row["id"])]
+
+
+@app.get("/api/messages/unread")
+def unread_count(row=Depends(current_user)) -> dict[str, int]:
+    return {"unread": messages_repo.unread_total(row["id"])}
+
+
+@app.get(
+    "/api/conversations/{user_id}/messages",
+    response_model=list[Message],
+    response_model_by_alias=True,
+)
+def get_thread(user_id: str, row=Depends(current_user)) -> list[Message]:
+    me = row["id"]
+    # Opening the thread clears its unread badge.
+    messages_repo.mark_read(me, user_id)
+    return [_to_message(m, me) for m in messages_repo.list_messages(me, user_id)]
+
+
+@app.post(
+    "/api/conversations/{user_id}/messages",
+    response_model=Message,
+    response_model_by_alias=True,
+    status_code=status.HTTP_201_CREATED,
+)
+def send_message(
+    user_id: str, payload: SendMessageRequest, row=Depends(current_user)
+) -> Message:
+    me = row["id"]
+    if user_id == me:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Нельзя написать самому себе"
+        )
+    if users_repo.get_by_id(user_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Пользователь не найден")
+    created = messages_repo.send(me, user_id, payload.body, payload.image_url)
+    return _to_message(created, me)
+
+
+@app.post(
+    "/api/conversations/{user_id}/typing", status_code=status.HTTP_204_NO_CONTENT
+)
+def set_typing(user_id: str, row=Depends(current_user)) -> Response:
+    messages_repo.set_typing(row["id"], user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.get("/api/conversations/{user_id}/typing")
+def typing_status(user_id: str, row=Depends(current_user)) -> dict[str, bool]:
+    return {"typing": messages_repo.is_typing(row["id"], user_id)}
 
 
 # ------------------------------------------------------------------ catalog

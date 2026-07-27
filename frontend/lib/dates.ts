@@ -62,6 +62,51 @@ function daysApart(a: Date, b: Date): number {
   return Math.round((startOf(a) - startOf(b)) / day);
 }
 
+/** Whether two ISO timestamps fall on the same calendar day (local time). */
+export function sameDay(a: string, b: string): boolean {
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+/** "Сегодня" / "Вчера" / "12 июля" — a day separator in a chat thread. */
+export function formatDayLabel(iso: string, now = new Date()): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  if (sameDay(iso, now.toISOString())) return "Сегодня";
+  const days = daysApart(now, d);
+  if (days === 1) return "Вчера";
+  return `${d.getDate()} ${MONTHS_GENITIVE[d.getMonth()]}`;
+}
+
+/** "12:40" — the clock time of a message. */
+export function formatClock(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes(),
+  ).padStart(2, "0")}`;
+}
+
+/** "12:40" for today, "вчера", else "12 июля" — for a conversation row. */
+export function formatChatStamp(iso: string, now = new Date()): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  if (sameDay) return formatClock(iso);
+
+  const days = daysApart(now, d);
+  if (days === 1) return "вчера";
+  return `${d.getDate()} ${MONTHS_GENITIVE[d.getMonth()]}`;
+}
+
 /** "сегодня" / "вчера" / "3 дня назад" / "12 сентября" for a posting time. */
 export function formatPostedAt(iso: string, now = new Date()): string {
   const posted = new Date(iso);

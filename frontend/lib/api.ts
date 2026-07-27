@@ -1,7 +1,9 @@
 import type {
   City,
+  Conversation,
   Listing,
   ListingDraft,
+  Message,
   Person,
   ProfileUpdate,
   PublicUser,
@@ -202,4 +204,52 @@ export function saveListing(token: string, id: string): Promise<void> {
 
 export function unsaveListing(token: string, id: string): Promise<void> {
   return request<void>(`/api/users/me/saved/${id}`, { method: "DELETE", token });
+}
+
+/* -------------------------------------------------------------- messages */
+
+export function fetchConversations(token: string): Promise<Conversation[]> {
+  return request<Conversation[]>("/api/conversations", { token });
+}
+
+export function fetchThread(token: string, userId: string): Promise<Message[]> {
+  return request<Message[]>(`/api/conversations/${userId}/messages`, { token });
+}
+
+export function sendMessage(
+  token: string,
+  userId: string,
+  content: { body?: string; imageUrl?: string },
+): Promise<Message> {
+  return request<Message>(`/api/conversations/${userId}/messages`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(content),
+  });
+}
+
+export async function fetchUnread(token: string): Promise<number> {
+  const res = await request<{ unread: number }>("/api/messages/unread", {
+    token,
+  });
+  return res.unread;
+}
+
+/** Ping that the current user is typing to `userId`. Fire-and-forget. */
+export function pingTyping(token: string, userId: string): Promise<void> {
+  return request<void>(`/api/conversations/${userId}/typing`, {
+    method: "POST",
+    token,
+  });
+}
+
+export async function fetchTyping(
+  token: string,
+  userId: string,
+): Promise<boolean> {
+  const res = await request<{ typing: boolean }>(
+    `/api/conversations/${userId}/typing`,
+    { token },
+  );
+  return res.typing;
 }

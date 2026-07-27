@@ -582,6 +582,74 @@ class Listing(ListingCreate):
     model_config = {"populate_by_name": True}
 
 
+class MessageUser(BaseModel):
+    """The other party's card fields, carried with a conversation."""
+
+    id: str
+    name: str
+    username: str
+    avatar_url: str = Field(..., alias="avatarUrl")
+
+    model_config = {"populate_by_name": True}
+
+
+# Data URI photos travel inline like avatars; keep the cap generous enough for
+# a downscaled ~1280px JPEG but far short of a full-size upload.
+MAX_MESSAGE_IMAGE_CHARS = 700_000
+
+
+class Message(BaseModel):
+    id: str
+    body: str
+    image_url: str | None = Field(default=None, alias="imageUrl")
+    created_at: str = Field(..., alias="createdAt")
+    # True when the current user sent it — drives which side the bubble sits on.
+    mine: bool
+    # True once the recipient has opened the thread — shown as a read receipt.
+    read: bool
+
+    model_config = {"populate_by_name": True}
+
+
+class Conversation(BaseModel):
+    user: MessageUser
+    last_body: str = Field(..., alias="lastBody")
+    last_at: str = Field(..., alias="lastAt")
+    last_mine: bool = Field(..., alias="lastMine")
+    unread: int
+
+    model_config = {"populate_by_name": True}
+
+
+class SendMessageRequest(BaseModel):
+    body: str = Field(default="", max_length=2000)
+    image_url: str | None = Field(
+        default=None, alias="imageUrl", max_length=MAX_MESSAGE_IMAGE_CHARS
+    )
+
+    model_config = {"populate_by_name": True}
+
+    @field_validator("body")
+    @classmethod
+    def _trim(cls, v: str) -> str:
+        return v.strip()
+
+    @field_validator("image_url")
+    @classmethod
+    def _check_image(cls, v: str | None) -> str | None:
+        if v in (None, ""):
+            return None
+        if v.startswith("data:image/"):
+            return v
+        raise ValueError("Недопустимое изображение")
+
+    @model_validator(mode="after")
+    def _need_content(self) -> "SendMessageRequest":
+        if not self.body and not self.image_url:
+            raise ValueError("Сообщение не может быть пустым")
+        return self
+
+
 class AuthResponse(BaseModel):
     token: str
     user: User
